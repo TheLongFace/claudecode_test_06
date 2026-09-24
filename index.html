@@ -264,6 +264,17 @@ const THEMES = {
            bgIn:[255,236,180], bgOut:[110,70,20], part:'sparkle' },
 };
 
+// 分岐の先の壁とトンネル入口（中が見えないので、抜けるまで正誤がわからない）
+const PORTAL = {
+  cave:  { wall:[66,46,30],    veil:[4,2,1],       trim:[128,86,46],  warn:'落石注意' },
+  magma: { wall:[60,22,12],    veil:[26,5,2],      trim:[255,110,20], warn:'高温注意' },
+  sea:   { wall:[16,56,80],    veil:[2,12,26],     trim:[130,235,255], warn:'水圧注意' },
+  sky:   { wall:[246,250,255], veil:[150,172,204], trim:[255,255,255], warn:'強風注意', cloud:true },
+  gold:  { wall:[150,108,44],  veil:[22,12,2],     trim:[255,214,90], warn:'罠に注意' },
+};
+// ステージごとの危険演出
+const HZ = { t:4, flash:0, tint:0, tintC:'255,60,0', bolt:null, gust:0, streaks:[], crack:null, dark:0 };
+
 // ================= 状態 =================
 const cv = $('cv'), ctx = cv.getContext('2d');
 let W=0, H=0, F=0, DPR=1, baseHy=0;
@@ -517,9 +528,10 @@ function drawTrack(){
 function frameDrawer(s, z){
   const t = theme, fs = frameSpec(s), c = fs.c, hw = fs.hw, key = G.stageKey;
   const idx = Math.round(s/FS);
-  if(key === 'sky') return;
+  if(key === 'sky'){ if(idx % 6 === 3) drawWarn(s, mainX(s) + 1.4, 1.2, 0.4, z, PORTAL.sky.warn); return; }
   if(key === 'sea'){
     const p = P(s, c, 1.5); if(!p) return;
+    if(idx % 6 === 3) drawWarn(s, c + hw - 0.2, 2.6, 0.42, z, PORTAL.sea.warn);
     ctx.strokeStyle = fogc(t.frame, z, 0.85); ctx.lineWidth = Math.max(1, 0.16*p.k);
     ctx.beginPath(); ctx.ellipse(p.x, p.y, (hw+0.6)*p.k, 3.1*p.k, 0, Math.PI*0.98, Math.PI*2.02); ctx.stroke();
     ctx.strokeStyle = fogc([200,250,255], z, 0.25); ctx.lineWidth = Math.max(1, 0.05*p.k);
@@ -550,6 +562,8 @@ function frameDrawer(s, z){
     ctx.strokeStyle = fogc([255,120,30], z*0.5, 0.8); ctx.lineWidth = Math.max(1, 0.04*a.k);
     ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(cc.x, cc.y); ctx.stroke();
   }
+  // 沿線の警告看板
+  if(idx % 6 === 3 && key !== 'sea') drawWarn(s - 0.05, c + hw - 0.1, 2.5, 0.42, z, PORTAL[key].warn);
   // たいまつ／ランプ
   if((key==='cave' || key==='gold') && idx % 2 === 0){
     const side = idx % 4 === 0 ? -1 : 1;
@@ -599,6 +613,76 @@ function drawSign(s, X, sym, stateAlpha, glow){
   ctx.restore();
 }
 
+// 分岐の先の壁とトンネル入口
+function drawPortal(f){
+  const ps = f.portalS, z = ps - cam.s, pc = PORTAL[G.stageKey];
+  const a = P(ps, -40, G.stageKey==='sky' ? -8 : 0), b = P(ps, 40, 7.5);
+  if(!a) return;
+  const wallCol = fogc(pc.wall, z*0.8);
+  ctx.fillStyle = wallCol; ctx.fillRect(a.x, b.y, b.x - a.x, a.y - b.y);
+  if(pc.cloud){
+    for(let i=-14;i<=14;i++){
+      const p = P(ps, i*2.4, 7.5 + (i%2)*0.4); if(!p) continue;
+      ctx.beginPath(); ctx.ellipse(p.x, p.y, 1.9*p.k, 1.2*p.k, 0, 0, 6.28); ctx.fill();
+    }
+  } else {
+    ctx.strokeStyle = fogc(pc.wall.map(v=>v*0.65), z*0.8); ctx.lineWidth = Math.max(1, 0.05*a.k);
+    for(let yy=0.9, row=0; yy<7.5; yy+=0.9, row++){
+      const l = P(ps,-40,yy), r = P(ps,40,yy);
+      ctx.beginPath(); ctx.moveTo(l.x,l.y); ctx.lineTo(r.x,r.y); ctx.stroke();
+      for(let xx=-12 + (row%2)*0.9; xx<12; xx+=1.8){
+        const t = P(ps,xx,yy), u = P(ps,xx,yy-0.9);
+        ctx.beginPath(); ctx.moveTo(t.x,t.y); ctx.lineTo(u.x,u.y); ctx.stroke();
+      }
+    }
+  }
+  for(const bb of [-1,1]){
+    const X = bb*SEP, hw = 1.4, ah = 2.3;
+    const l = P(ps, X-hw, 0), r = P(ps, X+hw, 0), c = P(ps, X, ah);
+    const R = hw*c.k;
+    ctx.beginPath(); ctx.moveTo(l.x, l.y); ctx.lineTo(l.x, c.y); ctx.arc(c.x, c.y, R, Math.PI, 0); ctx.lineTo(r.x, r.y); ctx.closePath();
+    const g = ctx.createRadialGradient(c.x, c.y+R*0.5, 0, c.x, c.y+R*0.5, R*1.8);
+    g.addColorStop(0, `rgb(${pc.veil.map(v=>v*0.5|0)})`); g.addColorStop(1, `rgb(${pc.veil})`);
+    ctx.fillStyle = g; ctx.fill();
+    ctx.lineWidth = Math.max(1.5, 0.24*c.k); ctx.strokeStyle = fogc(pc.trim, z*0.7); ctx.stroke();
+    // 点滅する警告灯
+    const lamp = P(ps, X, ah + hw + 0.5);
+    const on = Math.sin(G.time*7 + bb*1.57) > 0;
+    const lr = 0.24*lamp.k;
+    if(on){
+      ctx.save(); ctx.globalCompositeOperation='lighter';
+      const lg = ctx.createRadialGradient(lamp.x,lamp.y,0,lamp.x,lamp.y,lr*6);
+      lg.addColorStop(0,'rgba(255,50,30,.8)'); lg.addColorStop(1,'rgba(255,50,30,0)');
+      ctx.fillStyle = lg; ctx.beginPath(); ctx.arc(lamp.x,lamp.y,lr*6,0,6.28); ctx.fill();
+      ctx.restore();
+    }
+    ctx.fillStyle = on ? '#ff5a3c' : '#5a1810';
+    ctx.beginPath(); ctx.arc(lamp.x, lamp.y, lr, 0, 6.28); ctx.fill();
+  }
+  drawWarn(ps - 0.05, 0, 2.6, 0.75, z, pc.warn);
+}
+
+// 黄色の警告看板
+function drawWarn(s, X, Y, size, z, text){
+  const p = P(s, X, Y); if(!p) return;
+  const r = size*p.k; if(r < 2) return;
+  const ink = fogc([34,22,10], z*0.8);
+  ctx.save(); ctx.translate(p.x, p.y);
+  ctx.fillStyle = fogc([246,198,28], z*0.8);
+  ctx.beginPath(); ctx.moveTo(0,-r); ctx.lineTo(r,0); ctx.lineTo(0,r); ctx.lineTo(-r,0); ctx.closePath(); ctx.fill();
+  ctx.lineWidth = Math.max(1, r*0.1); ctx.strokeStyle = ink; ctx.stroke();
+  ctx.fillStyle = ink; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = `900 ${r*1.1|0}px sans-serif`; ctx.fillText('!', 0, r*0.06);
+  if(text && r > 9){
+    const fs = Math.max(8, r*0.42|0);
+    ctx.font = `900 ${fs}px 'Zen Kaku Gothic New', sans-serif`;
+    const w = ctx.measureText(text).width + fs*0.8;
+    ctx.fillStyle = fogc([20,14,8], z*0.8); ctx.fillRect(-w/2, r*1.12, w, fs*1.5);
+    ctx.fillStyle = fogc([246,198,28], z*0.8); ctx.fillText(text, 0, r*1.12 + fs*0.78);
+  }
+  ctx.restore();
+}
+
 // パーティクル
 function spawnPart(initial){
   const k = G.stageKey;
@@ -625,9 +709,15 @@ function resetParts(){
 }
 function updateParts(dt){
   const n = G.stageKey==='sky' ? 55 : G.stageKey==='sea' ? 70 : 80;
-  for(const p of G.parts){ p.Y += p.vy*dt; p.X += p.vx*dt; p.ph += dt*3; }
-  G.parts = G.parts.filter(p => p.s - cam.s > NEAR && p.Y < 9);
-  while(G.parts.length < n) spawnPart(false);
+  for(const p of G.parts){
+    if(p.g) p.vy -= p.g*dt;
+    p.Y += p.vy*dt; p.X += p.vx*dt; p.s += (p.vs||0)*dt; p.ph += dt*3;
+    if(p.life !== undefined) p.life -= dt;
+    if(p.type==='rock' && p.Y < 0){ p.Y = 0; p.vy *= -0.3; p.vx *= 0.6; }
+  }
+  G.parts = G.parts.filter(p => p.s - cam.s > NEAR && p.Y < 9 && p.Y > -16 && (p.life===undefined || p.life > 0));
+  let amb = 0; for(const p of G.parts) if(!p.fx) amb++;
+  while(amb++ < n) spawnPart(false);
 }
 function drawPart(p){
   const pp = P(p.s, p.X, p.Y); if(!pp) return;
@@ -657,6 +747,49 @@ function drawPart(p){
       ctx.ellipse(pp.x - r*0.45, pp.y - r*0.12, r*0.55, r*0.32, 0, 0, 6.28);
       ctx.ellipse(pp.x + r*0.4, pp.y - r*0.18, r*0.5, r*0.35, 0, 0, 6.28);
       ctx.fill(); break; }
+    case 'rock': {
+      const r = Math.max(1.5, p.size*pp.k);
+      ctx.save(); ctx.translate(pp.x, pp.y); ctx.rotate(p.ph);
+      ctx.fillStyle = fogc([96,70,46], z);
+      ctx.beginPath(); ctx.moveTo(-r,-r*0.3); ctx.lineTo(-r*0.2,-r); ctx.lineTo(r*0.9,-r*0.5); ctx.lineTo(r,r*0.5); ctx.lineTo(-r*0.4,r); ctx.closePath(); ctx.fill();
+      ctx.restore(); break; }
+    case 'bat': {
+      const r = Math.max(2, p.size*pp.k), fl = Math.sin(p.ph*9);
+      ctx.fillStyle = `rgba(12,6,4,${0.95*fade})`;
+      ctx.beginPath(); ctx.ellipse(pp.x, pp.y, r*0.25, r*0.35, 0, 0, 6.28); ctx.fill();
+      for(const sd of [-1,1]){
+        ctx.beginPath(); ctx.moveTo(pp.x, pp.y);
+        ctx.quadraticCurveTo(pp.x + sd*r*0.8, pp.y - r*0.9*fl, pp.x + sd*r*1.6, pp.y - r*0.5*fl);
+        ctx.lineTo(pp.x + sd*r*0.9, pp.y + r*0.2); ctx.closePath(); ctx.fill();
+      }
+      break; }
+    case 'lava': {
+      const r = Math.max(1.5, p.size*pp.k);
+      ctx.save(); ctx.globalCompositeOperation='lighter';
+      const g = ctx.createRadialGradient(pp.x,pp.y,0,pp.x,pp.y,r*3);
+      g.addColorStop(0,`rgba(255,200,80,${0.9*fade})`); g.addColorStop(.35,`rgba(255,90,10,${0.6*fade})`); g.addColorStop(1,'rgba(255,40,0,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(pp.x,pp.y,r*3,0,6.28); ctx.fill();
+      ctx.restore(); break; }
+    case 'flame': {
+      const age = 1 - Math.max(0, p.life)/0.9, r = Math.max(2, p.size*pp.k*(0.6+age*1.6));
+      ctx.save(); ctx.globalCompositeOperation='lighter';
+      const g = ctx.createRadialGradient(pp.x,pp.y,0,pp.x,pp.y,r);
+      g.addColorStop(0,`rgba(255,240,170,${0.8*(1-age)})`); g.addColorStop(.5,`rgba(255,130,20,${0.55*(1-age)})`); g.addColorStop(1,'rgba(255,60,0,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(pp.x,pp.y,r,0,6.28); ctx.fill();
+      ctx.restore(); break; }
+    case 'sand':
+      ctx.fillStyle = `rgba(240,200,110,${0.8*fade})`;
+      ctx.fillRect(pp.x, pp.y, Math.max(1, 0.03*pp.k), Math.max(2, 0.25*pp.k)); break;
+    case 'shark': {
+      const r = p.size*0.5*pp.k, dir = p.vx >= 0 ? 1 : -1;
+      ctx.fillStyle = `rgba(6,22,40,${0.85*fade})`;
+      ctx.beginPath(); ctx.ellipse(pp.x, pp.y, r, r*0.26, 0, 0, 6.28); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(pp.x - dir*r*0.1, pp.y - r*0.2); ctx.lineTo(pp.x - dir*r*0.35, pp.y - r*0.6); ctx.lineTo(pp.x - dir*r*0.45, pp.y - r*0.15); ctx.fill();
+      const tw = Math.sin(p.ph*3)*r*0.1;
+      ctx.beginPath(); ctx.moveTo(pp.x - dir*r*0.85, pp.y); ctx.lineTo(pp.x - dir*r*1.35, pp.y - r*0.45 + tw); ctx.lineTo(pp.x - dir*r*1.25, pp.y + r*0.35 + tw); ctx.fill();
+      ctx.fillStyle = `rgba(255,255,255,${0.7*fade})`;
+      ctx.beginPath(); ctx.arc(pp.x + dir*r*0.6, pp.y - r*0.05, Math.max(1, r*0.04), 0, 6.28); ctx.fill();
+      break; }
     case 'sparkle': {
       const tw = Math.max(0, Math.sin(p.ph*1.3));
       const r = Math.max(1, p.size*pp.k)*(1+tw*2);
@@ -689,6 +822,7 @@ function drawScene(){
       items.push({ z: ss - cam.s, fn: () => drawSign(ss, X, b<0?'o':'x', alpha, glow) });
     }
   }
+  if(f && f.portalS - cam.s > NEAR) items.push({ z: f.portalS - cam.s, fn: () => drawPortal(f) });
   for(const p of over) items.push({ z: p.s - cam.s, fn: () => drawPart(p) });
   items.sort((a,b)=>b.z-a.z);
   for(const it of items) it.fn();
@@ -741,9 +875,11 @@ function render(){
   ctx.save();
   ctx.translate(W/2 + shx, H*0.6 + shy); ctx.rotate(cam.roll); ctx.translate(-W/2, -H*0.6);
   drawBackground();
+  if(G.stageKey === 'sky') drawBolt();
   drawScene();
   drawHeadlight();
   ctx.restore();
+  drawHazardOverlay();
   if(G.mode !== 'fall' || G.fallT < 0.25) drawTrolley();
   // 落下時の暗転
   if(G.mode === 'fall' || G.mode === 'over'){
@@ -800,6 +936,15 @@ const AU = {
   wrong(){ this.tone(440, .4, 'sawtooth', .14, 0, 110); this.noise(1.2, 0.6, 300, 0.1); },
   tick(){ this.tone(1200, .05, 'square', .08); },
   clear(){ [523,659,784,1047,784,1047,1319,1568].forEach((f,i)=>this.tone(f, .3, 'square', .09, i*0.12)); },
+  rockfall(){ this.noise(1.0, .7, 160); this.noise(.35, .45, 700, .12); this.noise(.3, .4, 500, .4); },
+  bats(){ for(let i=0;i<8;i++) this.tone(2600 + Math.random()*1400, .05, 'sine', .05, i*0.07); },
+  geyser(){ this.noise(1.1, .6, 350); this.tone(90, .9, 'sawtooth', .08, 0, 45); },
+  shark(){ this.tone(82, .5, 'sine', .25, 0, 78); this.tone(87, .5, 'sine', .25, .55, 82); this.tone(82, .35, 'sine', .25, 1.0); this.tone(87, .35, 'sine', .25, 1.3); },
+  creak(){ this.tone(150, .8, 'sawtooth', .06, 0, 80); this.noise(.25, .35, 3000, .35); },
+  gust(){ this.noise(1.5, .45, 900); this.noise(1.2, .3, 1600, .2); },
+  thunder(){ this.noise(.15, .7, 2500); this.noise(2.0, .9, 110, .2); },
+  flame(){ this.noise(.8, .5, 650); },
+  portal(){ this.noise(.35, .35, 250); this.tone(70, .3, 'sine', .15); },
   stage(){ this.tone(392,.15,'triangle',.12); this.tone(523,.15,'triangle',.12,.15); this.tone(784,.4,'triangle',.12,.3); }
 };
 function drawMuteIcon(){
@@ -833,6 +978,7 @@ function lvStars(lv){ return '難易度 ' + '★'.repeat(lv) + '☆'.repeat(5-lv
 function setTheme(i){
   G.stage = i; G.stageKey = STAGES[i].key; theme = THEMES[G.stageKey];
   resetParts(); updateHud();
+  HZ.t = rand(3, 5); HZ.streaks = []; HZ.bolt = null; HZ.crack = null; HZ.tint = 0; HZ.gust = 0;
 }
 
 // ================= ゲーム進行 =================
@@ -848,7 +994,9 @@ function spawnQuestion(){
   const q = G.qs[G.qi];
   const qTime = 13 + q.lv*1.2;
   G.fork = { s: cam.s + 62, q, qTime, committed:false, choice:0, correctB: q.a ? -1 : 1, wrongB: q.a ? 1 : -1, endS:0, resolved:false, timeUp:false };
-  G.fork.endS = G.fork.s + LEN + 4;
+  G.fork.portalS = G.fork.s + LEN + 3;
+  G.fork.endS = G.fork.portalS + 6;
+  G.fork.passed = false;
   $('qwho').textContent = q.who; $('qlv').textContent = lvStars(q.lv); $('qtext').textContent = q.text;
   $('timer').classList.remove('hurry'); $('timer').style.visibility = 'visible';
   const qc = $('qcard'); qc.hidden = false; qc.classList.remove('show'); void qc.offsetWidth; qc.classList.add('show');
@@ -919,6 +1067,114 @@ function showBest(){
   $('best').textContent = b ? `これまでの最高記録：${b}問正解` : `全${POOL.length}問からランダムに出題`;
 }
 
+// ================= 危険イベント =================
+function fx(o){ o.fx = true; o.ph = o.ph ?? rand(0,6); o.vx = o.vx ?? 0; o.vy = o.vy ?? 0; G.parts.push(o); }
+function hazardEvent(){
+  const k = G.stageKey, ahead = cam.s + rand(13, 24);
+  if(k === 'cave'){
+    if(Math.random() < .6){ // 落石
+      const X = cam.x + rand(-2.4, 2.4);
+      for(let i=0;i<10;i++) fx({ type:'rock', s:ahead+rand(-1.5,1.5), X:X+rand(-1.2,1.2), Y:rand(3.6,6), vy:-rand(0,2), g:14, vx:rand(-.6,.6), size:rand(.12,.38), life:3.5 });
+      for(let i=0;i<40;i++) fx({ type:'dust', s:ahead+rand(-2,2), X:X+rand(-2,2), Y:rand(0,5), vy:-rand(.3,1.5), life:3 });
+      cam.shake = Math.max(cam.shake, 8); AU.rockfall();
+    } else { // コウモリの群れ
+      for(let i=0;i<12;i++) fx({ type:'bat', s:cam.s+rand(30,48), X:cam.x+rand(-3,3), Y:rand(1.8,4.6), vs:-rand(15,22), vx:rand(-1.2,1.2), vy:rand(-.3,.3), size:rand(.3,.55), life:5 });
+      AU.bats();
+    }
+  } else if(k === 'magma'){ // 溶岩の噴き上げ
+    const side = Math.random()<.5 ? -1 : 1, X = cam.x + side*rand(4, 6);
+    for(let i=0;i<45;i++) fx({ type:'lava', s:ahead+rand(-.8,.8), X:X+rand(-.5,.5), Y:0, vy:rand(6,12), vx:rand(-1.4,1.4), g:10, size:rand(.08,.2), life:2.6 });
+    HZ.tint = 0.4; HZ.tintC = '255,70,0'; cam.shake = Math.max(cam.shake, 6); AU.geyser();
+  } else if(k === 'sea'){
+    if(Math.random() < .55){ // サメ
+      const dir = Math.random()<.5 ? -1 : 1;
+      fx({ type:'shark', s:cam.s+rand(10,20), X:cam.x - dir*18, vx:dir*rand(5,7), Y:rand(2.2,4.4), size:rand(3,4.5), life:8 });
+      AU.shark();
+    } else { // ガラスにひび
+      HZ.crack = { t:2.8, x: W*(Math.random()<.5 ? rand(.12,.3) : rand(.7,.88)), y: H*rand(.3,.5), seed: Math.random()*1000 };
+      for(let i=0;i<25;i++) fx({ type:'bubble', s:cam.s+rand(3,6), X:cam.x+rand(-2,2), Y:rand(1,4), vy:rand(1,2.5), size:rand(.05,.14), life:2.5 });
+      cam.shake = Math.max(cam.shake, 5); AU.creak();
+    }
+  } else if(k === 'sky'){
+    if(Math.random() < .5){ // 突風
+      HZ.gust = 1.6; HZ.gustDir = Math.random()<.5 ? -1 : 1;
+      for(let i=0;i<26;i++) HZ.streaks.push({ x:rand(0,W), y:rand(0,H*0.8), len:rand(60,160), v:rand(900,1500), life:1.6 });
+      AU.gust();
+    } else { // 雷
+      const pts = []; let x = rand(W*0.1, W*0.9), y = -20;
+      while(y < baseHy - 10){ pts.push([x,y]); x += rand(-35,35); y += rand(20,50); }
+      HZ.bolt = { pts, life:.35 }; HZ.flash = .85; cam.shake = Math.max(cam.shake, 4); AU.thunder();
+    }
+  } else if(k === 'gold'){
+    if(Math.random() < .55){ // 柱からの火炎トラップ
+      const s0 = ahead;
+      for(const sd of [-1,1]) for(let i=0;i<18;i++) fx({ type:'flame', s:s0+rand(-.3,.3), X:cam.x+sd*2.7, Y:rand(1.4,2.2), vx:-sd*rand(3,6), vy:rand(-.3,.5), size:rand(.5,.9), life:rand(.6,.9) });
+      HZ.tint = 0.25; HZ.tintC = '255,150,30'; AU.flame();
+    } else { // 天井から砂が落ちる
+      for(let j=0;j<3;j++){
+        const s0 = ahead + j*3, X = cam.x + rand(-2.5,2.5);
+        for(let i=0;i<30;i++) fx({ type:'sand', s:s0+rand(-.2,.2), X:X+rand(-.25,.25), Y:rand(4,6.5), vy:-rand(1,3), g:9, life:2.2 });
+      }
+      cam.shake = Math.max(cam.shake, 3); AU.rockfall();
+    }
+  }
+}
+function updateHazards(dt){
+  HZ.flash = Math.max(0, HZ.flash - dt*3); HZ.tint = Math.max(0, HZ.tint - dt*0.5);
+  HZ.gust = Math.max(0, HZ.gust - dt); HZ.dark = Math.max(0, HZ.dark - dt*1.6);
+  if(HZ.bolt && (HZ.bolt.life -= dt) <= 0) HZ.bolt = null;
+  if(HZ.crack && (HZ.crack.t -= dt) <= 0) HZ.crack = null;
+  for(const st of HZ.streaks){ st.x += st.v*dt*(HZ.gustDir||1); st.life -= dt; }
+  HZ.streaks = HZ.streaks.filter(st => st.life > 0);
+  if(G.mode !== 'run' || G.trans) return;
+  HZ.t -= dt;
+  if(HZ.t <= 0){ HZ.t = rand(4, 7.5); hazardEvent(); }
+}
+function drawBolt(){
+  if(!HZ.bolt) return;
+  const a = HZ.bolt.pts;
+  ctx.save(); ctx.lineJoin = 'round';
+  for(const [w, c] of [[10,'rgba(170,200,255,.35)'],[3,'rgba(255,255,255,.95)']]){
+    ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath();
+    a.forEach(([x,y],i) => i ? ctx.lineTo(x,y) : ctx.moveTo(x,y)); ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawHazardOverlay(){
+  // 高温ステージは常に熱気で画面の縁が赤く揺らめく
+  if(G.stageKey === 'magma' && G.mode === 'run'){
+    const a = 0.18 + 0.07*Math.sin(G.time*2.3);
+    const g = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.35, W/2, H/2, Math.max(W,H)*0.75);
+    g.addColorStop(0,'rgba(255,60,0,0)'); g.addColorStop(1,`rgba(255,60,0,${a})`);
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  }
+  if(HZ.tint > 0){ ctx.fillStyle = `rgba(${HZ.tintC},${HZ.tint*0.5})`; ctx.fillRect(0,0,W,H); }
+  if(HZ.streaks.length){
+    ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    for(const st of HZ.streaks){ const x = ((st.x % (W+200)) + W+200) % (W+200) - 100; ctx.beginPath(); ctx.moveTo(x, st.y); ctx.lineTo(x - st.len*(HZ.gustDir||1), st.y + 6); ctx.stroke(); }
+  }
+  if(HZ.crack){
+    const c = HZ.crack, a = Math.min(1, c.t);
+    let seed = c.seed; const rnd = () => (seed = (seed*9301 + 49297) % 233280) / 233280;
+    ctx.strokeStyle = `rgba(220,245,255,${0.85*a})`; ctx.lineWidth = 1.5;
+    for(let i=0;i<9;i++){
+      let ang = rnd()*6.28, x = c.x, y = c.y; ctx.beginPath(); ctx.moveTo(x,y);
+      for(let j=0;j<5;j++){ ang += (rnd()-.5)*0.9; const L = 14 + rnd()*30; x += Math.cos(ang)*L; y += Math.sin(ang)*L; ctx.lineTo(x,y); }
+      ctx.stroke();
+    }
+    ctx.fillStyle = `rgba(220,245,255,${0.5*a})`; ctx.beginPath(); ctx.arc(c.x, c.y, 4, 0, 6.28); ctx.fill();
+  }
+  // 残り時間が少ないと画面の縁が赤く点滅
+  if(G.hurry){
+    const a = 0.22 + 0.18*Math.sin(G.time*12);
+    const g = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.3, W/2, H/2, Math.max(W,H)*0.72);
+    g.addColorStop(0,'rgba(255,0,0,0)'); g.addColorStop(1,`rgba(255,0,0,${a})`);
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  }
+  if(HZ.dark > 0){ ctx.fillStyle = `rgba(0,0,0,${HZ.dark})`; ctx.fillRect(0,0,W,H); }
+  if(HZ.flash > 0){ ctx.fillStyle = `rgba(235,242,255,${HZ.flash*0.8})`; ctx.fillRect(0,0,W,H); }
+}
+
 // ================= 更新 =================
 function update(dt){
   G.time += dt;
@@ -927,7 +1183,7 @@ function update(dt){
   let target = 3;
   if(G.mode === 'run'){
     if(f && !f.committed) target = 62 / f.qTime;
-    else if(f && f.committed && !f.resolved) target = 12;
+    else if(f && f.committed && !f.resolved) target = cam.s < f.portalS ? 12 : 6;
     else target = 6.5;
   } else if(G.mode === 'fall') target = cam.v*0.98;
   else if(G.mode === 'clear') target = 9;
@@ -940,7 +1196,7 @@ function update(dt){
     const nx = mainX(cam.s);
     const dx = mainX(cam.s + 1.5) - nx;
     cam.x = nx;
-    const targetRoll = -dx*0.12 + Math.sin(G.time*1.3)*0.004;
+    const targetRoll = -dx*0.12 + Math.sin(G.time*1.3)*0.004 + (HZ.gust > 0 ? Math.sin(G.time*9)*0.06*Math.min(1, HZ.gust) : 0);
     if(G.mode !== 'fall') cam.roll += (targetRoll - cam.roll)*Math.min(1, dt*4);
   }
   if(G.mode !== 'fall') cam.y = 1.5 + Math.sin(G.time*17)*0.012*cam.v*0.3;
@@ -952,6 +1208,8 @@ function update(dt){
   AU.rumble(cam.v);
 
   updateParts(dt);
+  updateHazards(dt);
+  G.hurry = false;
 
   if(G.mode === 'run'){
     // ステージ切り替え演出
@@ -975,11 +1233,13 @@ function update(dt){
         const frac = clamp((f.s - 1 - cam.s)/61, 0, 1);
         $('timerBar').style.transform = `scaleX(${frac})`;
         $('timer').classList.toggle('hurry', remain < 4);
+        G.hurry = remain < 4;
         const sec = Math.ceil(remain);
         if(remain < 4 && sec !== G.tickAt){ G.tickAt = sec; AU.tick(); }
         if(cam.s >= f.s - 1) commit(f.wrongB, true);
       } else if(!f.resolved){
-        if(f.choice === f.correctB && cam.s > f.s + LEN*0.7) resolveCorrect();
+        if(!f.passed && cam.s > f.portalS){ f.passed = true; HZ.dark = 0.6; AU.portal(); }
+        if(f.choice === f.correctB && cam.s > f.portalS + 2.5) resolveCorrect();
         else if(f.choice !== f.correctB && cam.s > f.endS) startFall();
       } else if(cam.s > f.endS + 10){
         // 通過済みの分岐を片付け、座標系を戻す
