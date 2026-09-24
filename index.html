@@ -18,6 +18,12 @@
   --panel:rgba(26,15,8,.88);
   --panel-edge:#8a6331;
   --ground:#110a05;
+  --shadow:#6a3a06;
+  --glow:rgba(255,200,60,.8);
+  --btn-a:#ffd96b;
+  --btn-b:#e0a520;
+  --btn-edge:#8a5a0a;
+  --btn-ink:#2a1705;
   --ok:#3fcf6b;
   --display:'Dela Gothic One','Hiragino Sans','Yu Gothic',system-ui,sans-serif;
   --body:'Zen Kaku Gothic New','Hiragino Sans','Yu Gothic',system-ui,sans-serif;
@@ -49,9 +55,27 @@ a{color:var(--gold)}
 #qcard.show{animation:drop .45s cubic-bezier(.2,1.4,.4,1)}
 @keyframes drop{from{transform:translateY(-30px) scale(.9);opacity:0}}
 #qcard .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
-.chip{font-size:12px;font-weight:900;padding:3px 9px;border-radius:999px;background:var(--gold);color:#2a1705;letter-spacing:.04em}
+.chip{font-size:12px;font-weight:900;padding:3px 9px;border-radius:999px;background:var(--gold);color:var(--btn-ink);letter-spacing:.04em}
 .lv{font-size:12px;color:var(--gold);letter-spacing:.1em}
 #qtext{font-size:clamp(16px,4.4vw,21px);font-weight:700;line-height:1.55;text-wrap:pretty}
+body.bio{
+  --gold:#9be15d;
+  --gold-deep:#4f9a2c;
+  --panel:rgba(8,26,14,.9);
+  --panel-edge:#3f8a4a;
+  --ground:#06140a;
+  --ink-dim:#b9d6b0;
+  --shadow:#1f4a12;
+  --glow:rgba(150,230,90,.6);
+  --btn-a:#b8f07a;
+  --btn-b:#5fbf3a;
+  --btn-edge:#2a6a18;
+  --btn-ink:#0e2408;
+}
+.copt.bio{grid-column:1 / -1;min-height:0;background:rgba(120,210,80,.1);border-color:rgba(150,230,90,.45)}
+.copt.bio .cn{color:#b8f07a}
+.copt.bio .cb{color:#b8f07a}
+.copt.bio[aria-checked="true"]{background:rgba(150,230,90,.2);border-color:#9be15d;box-shadow:0 0 0 1px #9be15d inset}
 #timer{margin-top:10px;height:8px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}
 #timer b{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--maru),var(--gold));transform-origin:0 50%}
 #timer.hurry b{background:var(--maru);animation:blink .3s infinite alternate}
@@ -74,8 +98,8 @@ a{color:var(--gold)}
 #result .ans{font-weight:900;font-size:14px;margin-bottom:6px}
 #result p{margin:0 0 8px;line-height:1.7;font-size:15px}
 .wiki{font-size:13px;display:inline-flex;align-items:center;gap:4px}
-.btn{display:block;width:100%;margin-top:12px;padding:15px;border-radius:14px;font-weight:900;font-size:18px;letter-spacing:.08em;background:linear-gradient(#ffd96b,#e0a520);color:#2a1705;box-shadow:0 5px 0 #8a5a0a}
-.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #8a5a0a}
+.btn{display:block;width:100%;margin-top:12px;padding:15px;border-radius:14px;font-weight:900;font-size:18px;letter-spacing:.08em;background:linear-gradient(var(--btn-a),var(--btn-b));color:var(--btn-ink);box-shadow:0 5px 0 var(--btn-edge)}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--btn-edge)}
 .btn.ghost{background:rgba(255,255,255,.08);color:var(--ink);box-shadow:none;border:2px solid rgba(255,244,220,.3);font-size:15px}
 
 /* 全画面オーバーレイ */
@@ -84,7 +108,7 @@ a{color:var(--gold)}
 #title{background:radial-gradient(ellipse at 50% 40%,rgba(0,0,0,.1),rgba(0,0,0,.65))}
 .logo{text-align:center;margin-bottom:18px}
 .logo .kicker{font-weight:900;letter-spacing:.3em;font-size:13px;color:var(--gold)}
-.logo h1{margin:6px 0 0;font-family:var(--display);font-weight:400;line-height:1.05;font-size:clamp(46px,15vw,72px);color:var(--gold);text-shadow:0 4px 0 #6a3a06,0 8px 0 #2a1402,0 0 30px rgba(255,180,40,.45);letter-spacing:.02em;text-wrap:balance}
+.logo h1{margin:6px 0 0;font-family:var(--display);font-weight:400;line-height:1.05;font-size:clamp(46px,15vw,72px);color:var(--gold);text-shadow:0 4px 0 var(--shadow),0 8px 0 #0a0a02,0 0 30px var(--glow);letter-spacing:.02em;text-wrap:balance}
 .logo h1 .mx{display:block;font-size:.62em;color:var(--ink);text-shadow:0 3px 0 #4a2a08,0 6px 0 #1a0c02}
 .logo h1 .mx .o{color:var(--maru)}
 .logo h1 .mx .x{color:var(--batsu)}
@@ -109,7 +133,7 @@ a{color:var(--gold)}
 #clear{background:radial-gradient(ellipse at 50% 30%,rgba(255,220,120,.35),rgba(30,15,0,.9))}
 .big{font-family:var(--display);font-weight:400;text-align:center;margin:0 0 4px;font-size:clamp(44px,14vw,64px);letter-spacing:.04em}
 #over .big{color:var(--maru);text-shadow:0 4px 0 #4a0c04}
-#clear .big{color:var(--gold);text-shadow:0 4px 0 #6a3a06,0 0 30px rgba(255,200,60,.8)}
+#clear .big{color:var(--gold);text-shadow:0 4px 0 var(--shadow),0 0 30px var(--glow)}
 .sub{text-align:center;font-weight:700;margin-bottom:14px;color:var(--ink-dim)}
 .miss .q{font-weight:700;line-height:1.6;margin:6px 0 10px}
 .miss .ans{font-weight:900;margin-bottom:6px}
@@ -171,16 +195,16 @@ a{color:var(--gold)}
 <section class="screen" id="title">
   <div class="inner">
     <div class="logo">
-      <div class="kicker">偉人の伝説クイズ</div>
-      <h1>偉人伝説<span class="mx"><span class="o">○</span><span class="x">×</span>トロッコ</span></h1>
+      <div class="kicker" id="kicker">偉人の伝説クイズ</div>
+      <h1><span id="logoMain">偉人伝説</span><span class="mx"><span class="o">○</span><span class="x">×</span>トロッコ</span></h1>
     </div>
     <div class="card">
       <ul class="rules">
-        <li><span class="k o">○</span><span>本当のエピソードだと思ったら <b>左のレール</b></span></li>
+        <li><span class="k o">○</span><span><span id="rule1">本当のエピソードだと思ったら</span> <b>左のレール</b></span></li>
         <li><span class="k x">×</span><span>ウソだと思ったら <b>右のレール</b>。まちがえるとレールが途切れて…脱線！</span></li>
-        <li><span class="k g">10</span><span>10問連続で正解すると、黄金の神殿にたどり着いてクリア。進むほど問題はむずかしくなる。</span></li>
+        <li><span class="k g">10</span><span id="rule10">10問連続で正解すると、黄金の神殿にたどり着いてクリア。進むほど問題はむずかしくなる。</span></li>
       </ul>
-      <div class="route"><span>洞窟</span><span>地底マグマ</span><span>深海トンネル</span><span>天空レール</span><span>黄金の神殿</span></div>
+      <div class="route" id="route"><span>洞窟</span><span>地底マグマ</span><span>深海トンネル</span><span>天空レール</span><span>黄金の神殿</span></div>
     </div>
     <div class="card courses">
       <div class="ctitle">コースを選ぶ</div>
@@ -233,6 +257,15 @@ const STAGES = [
   { key:'sky',   s:'STAGE 4', n:'天空レール',   d:'雲の上にかかる一本のレール' },
   { key:'gold',  s:'FINAL',   n:'黄金の神殿',   d:'伝説の偉人たちが眠る宝の間' },
 ];
+// 生きものコース：問題ごとに、その生きものが住む場所へ
+const AREAS = {
+  forest:  { key:'jungle',  s:'AREA', n:'深い森',         d:'ツタの垂れ下がる森の奥へ' },
+  savanna: { key:'savanna', s:'AREA', n:'サバンナと砂漠', d:'乾いた大地がどこまでも続く' },
+  polar:   { key:'ice',     s:'AREA', n:'氷の世界',       d:'凍てつく氷のトンネルを抜けて' },
+  ocean:   { key:'sea',     s:'AREA', n:'深い海',         d:'ガラスのチューブで海の底へ' },
+  cave:    { key:'cave',    s:'AREA', n:'洞窟と地中',     d:'光の届かない地下のすみか' },
+  sky:     { key:'sky',     s:'AREA', n:'大空',           d:'鳥たちの飛ぶ雲の上' },
+};
 
 // ================= ユーティリティ =================
 const $ = id => document.getElementById(id);
@@ -248,10 +281,12 @@ const store = {
 
 // ================= 問題選択 =================
 const POOL = (window.QUESTIONS||[]).map(r => ({ lv:r[0], who:r[1], a:!!r[2], text:r[3], exp:r[4], wiki:r[5], tags:(r[6]||'').split(' ') }));
+const BIO_POOL = (window.BIO_QUESTIONS||[]).map(r => ({ lv:r[0], who:r[1], a:!!r[2], text:r[3], exp:r[4], wiki:r[5], tags:[], hab:r[6] }));
 const COURSES = (window.COURSES||[{ key:'all', name:'全偉人ミックス', sub:'' }]).map(c => ({ ...c, people: new Set((c.people||'').split(' ').filter(Boolean)) }));
 function courseOf(key){ return COURSES.find(c => c.key===key) || COURSES[0]; }
 function coursePool(key){
   const c = courseOf(key);
+  if(c.bio) return BIO_POOL;
   return c.key==='all' ? POOL : POOL.filter(q => c.people.has(q.who) || q.tags.includes(c.key));
 }
 function pickQuestions(key){
@@ -288,6 +323,12 @@ const THEMES = {
   sky:   { fog:[206,232,255], sleeper:[128,92,58], rail:[80,82,96], frame:[90,76,72], dark:false, noFloor:true, part:'cloud' },
   gold:  { fog:[255,226,150], floor:[128,94,40], edge:[255,214,110], sleeper:[108,74,30], rail:[255,222,120], frame:[206,164,86], dark:true,
            bgIn:[255,236,180], bgOut:[110,70,20], part:'sparkle' },
+  jungle:  { fog:[20,46,18],   floor:[58,50,30],  edge:[30,70,24],   sleeper:[96,70,40],  rail:[176,172,150], frame:[84,58,34], dark:true,
+             bgIn:[150,200,90], bgOut:[16,44,16], part:'leaf' },
+  savanna: { fog:[248,196,130], floor:[196,156,76], edge:[160,120,50], sleeper:[110,78,46], rail:[150,140,132], frame:[46,30,18], dark:false,
+             open:true, skyTop:'#d8612e', skyMid:'#f39a4a', skyHor:'#ffd892', part:'dust' },
+  ice:     { fog:[196,228,246], floor:[214,232,246], edge:[150,196,228], sleeper:[118,100,92], rail:[110,122,146], frame:[180,230,255], dark:false,
+             bgIn:[240,250,255], bgOut:[80,140,196], part:'snow' },
 };
 
 // 分岐の先の壁とトンネル入口（中が見えないので、抜けるまで正誤がわからない）
@@ -297,6 +338,9 @@ const PORTAL = {
   sea:   { wall:[16,56,80],    veil:[2,12,26],     trim:[130,235,255] },
   sky:   { wall:[246,250,255], veil:[150,172,204], trim:[255,255,255], cloud:true },
   gold:  { wall:[150,108,44],  veil:[22,12,2],     trim:[255,214,90] },
+  jungle:  { wall:[28,68,26],   veil:[4,14,4],    trim:[110,160,70], cloud:true },
+  savanna: { wall:[164,118,64], veil:[34,20,8],   trim:[214,170,110] },
+  ice:     { wall:[206,234,250], veil:[40,84,128], trim:[250,254,255] },
 };
 // ステージごとの危険演出
 const HZ = { t:4, flash:0, tint:0, tintC:'255,60,0', bolt:null, gust:0, streaks:[], crack:null, dark:0 };
@@ -390,7 +434,27 @@ function drawBackground(){
     }
     return;
   }
-  if(G.stageKey === 'sea'){
+  if(t.open){
+    let g = ctx.createLinearGradient(0, hy-H, 0, hy);
+    g.addColorStop(0, t.skyTop); g.addColorStop(.6, t.skyMid); g.addColorStop(1, t.skyHor);
+    ctx.fillStyle = g; ctx.fillRect(-pad, hy-H*2, W+pad*2, H*2);
+    // 地平線に沈む大きな太陽
+    const sx = W*0.3, sy = hy - H*0.06, sr = Math.min(W,H)*0.16;
+    g = ctx.createRadialGradient(sx,sy,sr*0.8,sx,sy,sr*3);
+    g.addColorStop(0,'rgba(255,230,160,.7)'); g.addColorStop(1,'rgba(255,200,120,0)');
+    ctx.fillStyle = g; ctx.fillRect(-pad, -pad, W+pad*2, H+pad*2);
+    ctx.fillStyle = '#ffe9b0'; ctx.beginPath(); ctx.arc(sx, sy, sr, Math.PI, 0); ctx.fill();
+    // 遠くのアカシアの木と丘のシルエット
+    ctx.fillStyle = 'rgba(90,52,30,.55)';
+    ctx.beginPath(); ctx.moveTo(-pad, hy);
+    for(let x=-pad; x<=W+pad; x+=40) ctx.lineTo(x, hy - 6 - 8*Math.sin(x*0.013) - 5*Math.sin(x*0.041));
+    ctx.lineTo(W+pad, hy); ctx.fill();
+    for(let i=0;i<5;i++){
+      const x = W*(0.08 + i*0.23) + ((i*37)%20), h = 14 + (i%3)*6;
+      ctx.fillRect(x-1.5, hy-h, 3, h);
+      ctx.beginPath(); ctx.ellipse(x, hy-h, 18+(i%2)*8, 5, 0, 0, Math.PI*2); ctx.fill();
+    }
+  } else if(G.stageKey === 'sea'){
     let g = ctx.createLinearGradient(0, hy-H, 0, hy+H*0.1);
     g.addColorStop(0,'#1b78b8'); g.addColorStop(.6,'#0c4a80'); g.addColorStop(1,'#04284a');
     ctx.fillStyle = g; ctx.fillRect(-pad, hy-H*2, W+pad*2, H*3);
@@ -556,6 +620,9 @@ function frameDrawer(s, z){
   const t = theme, fs = frameSpec(s), c = fs.c, hw = fs.hw, key = G.stageKey;
   const idx = Math.round(s/FS);
   if(key === 'sky') return;
+  if(key === 'jungle'){ drawJungleFrame(s, z, c, hw, idx); return; }
+  if(key === 'savanna'){ drawSavannaFrame(s, z, c, hw, idx); return; }
+  if(key === 'ice'){ drawIceFrame(s, z, c, hw, idx); return; }
   if(key === 'sea'){
     const p = P(s, c, 1.5); if(!p) return;
     ctx.strokeStyle = fogc(t.frame, z, 0.85); ctx.lineWidth = Math.max(1, 0.16*p.k);
@@ -637,6 +704,62 @@ function drawSign(s, X, sym, stateAlpha, glow){
   ctx.restore();
 }
 
+// 深い森：両側の大木、覆いかぶさる葉、垂れ下がるツタ
+function drawJungleFrame(s, z, c, hw, idx){
+  const t = theme;
+  for(const side of [-1,1]){
+    const X = c + side*(hw + 1.1 + (idx%3)*0.5), w = 0.5 + (idx%2)*0.2;
+    const a = P(s, X-w, 0), b = P(s, X+w, 0), cc = P(s, X+w, 8), d = P(s, X-w, 8);
+    if(!a) return;
+    quad(a,b,cc,d, fogc([72,50,30], z));
+    const top = P(s, X, 7.2);
+    ctx.fillStyle = fogc([30,78,28], z);
+    for(let k=0;k<3;k++){
+      const q = P(s, X - side*(0.5 + k*1.1), 6.6 + (k%2)*0.7);
+      ctx.beginPath(); ctx.ellipse(q.x, q.y, 1.9*q.k, 1.0*q.k, 0, 0, 6.28); ctx.fill();
+    }
+    ctx.fillStyle = fogc([44,100,36], z);
+    ctx.beginPath(); ctx.ellipse(top.x, top.y, 1.6*top.k, 0.9*top.k, 0, 0, 6.28); ctx.fill();
+  }
+  // ツタ
+  ctx.strokeStyle = fogc([40,90,34], z); ctx.lineWidth = Math.max(1, 0.06*(F/z));
+  for(let k=0;k<3;k++){
+    const X = c + (k-1)*hw*0.7 + ((idx*7+k*3)%5-2)*0.3, len = 2 + ((idx+k)%3)*0.8;
+    const p0 = P(s, X, 7), p1 = P(s, X + Math.sin(G.time+idx+k)*0.15, 7 - len);
+    if(!p0) continue;
+    ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+  }
+}
+// サバンナ：ときどき道ばたに立つアカシアの木
+function drawSavannaFrame(s, z, c, hw, idx){
+  if(idx % 2) return;
+  const side = idx % 4 === 0 ? -1 : 1, X = c + side*(hw + 3 + (idx%7)*0.8);
+  const base = P(s, X, 0), top = P(s, X, 4.2);
+  if(!base) return;
+  ctx.strokeStyle = fogc([60,40,24], z); ctx.lineWidth = Math.max(1, 0.25*base.k);
+  ctx.beginPath(); ctx.moveTo(base.x, base.y); ctx.lineTo(top.x, top.y); ctx.stroke();
+  ctx.lineWidth = Math.max(1, 0.12*base.k);
+  for(const d of [-1,1]){ const br = P(s, X + d*1.2, 4.9); ctx.beginPath(); ctx.moveTo(top.x, top.y); ctx.lineTo(br.x, br.y); ctx.stroke(); }
+  const cp = P(s, X, 5.1);
+  ctx.fillStyle = fogc([74,96,40], z);
+  ctx.beginPath(); ctx.ellipse(cp.x, cp.y, 2.6*cp.k, 0.55*cp.k, 0, 0, 6.28); ctx.fill();
+}
+// 氷の世界：氷のアーチとつらら
+function drawIceFrame(s, z, c, hw, idx){
+  const p = P(s, c, 0.2); if(!p) return;
+  const rx = (hw+0.7)*p.k, ry = 4.2*p.k;
+  ctx.fillStyle = fogc([200,236,255], z, 0.18);
+  ctx.beginPath(); ctx.ellipse(p.x, p.y, rx, ry, 0, Math.PI, Math.PI*2); ctx.ellipse(p.x, p.y, rx*0.86, ry*0.9, 0, Math.PI*2, Math.PI, true); ctx.fill();
+  ctx.strokeStyle = fogc(theme.frame, z, 0.9); ctx.lineWidth = Math.max(1, 0.1*p.k);
+  ctx.beginPath(); ctx.ellipse(p.x, p.y, rx*0.86, ry*0.9, 0, Math.PI, Math.PI*2); ctx.stroke();
+  ctx.fillStyle = fogc([235,248,255], z, 0.85);
+  for(let k=0;k<6;k++){
+    const ang = Math.PI*(1.15 + k*0.14), x = p.x + Math.cos(ang)*rx*0.86, y = p.y + Math.sin(ang)*ry*0.9;
+    const L = (0.4 + ((idx+k)%3)*0.25)*p.k, w = 0.09*p.k;
+    ctx.beginPath(); ctx.moveTo(x-w, y); ctx.lineTo(x+w, y); ctx.lineTo(x, y+L); ctx.fill();
+  }
+}
+
 // 分岐の先の壁とトンネル入口
 function drawPortal(f){
   const ps = f.portalS, z = ps - cam.s, pc = PORTAL[G.stageKey];
@@ -702,6 +825,12 @@ function spawnPart(initial){
     if(Math.random()<.25){ p.X = cam.x + rand(-6,6); p.Y = rand(-10,-4); }
   }
   if(k==='gold'){ p.type='sparkle'; p.Y = rand(0, 5); p.size = rand(.04,.1); }
+  if(k==='jungle'){
+    if(Math.random()<.35){ p.type='firefly'; p.Y = rand(0.5, 4); p.size = rand(.03,.06); }
+    else { p.type='leaf'; p.Y = rand(1, 7); p.vy = -rand(.3,.8); p.vx = rand(-.4,.4); p.size = rand(.1,.2); }
+  }
+  if(k==='savanna'){ p.type='dust'; p.Y = rand(0, 3); p.vx = rand(.4,1.2); }
+  if(k==='ice'){ p.type='snow'; p.Y = rand(0, 7); p.vy = -rand(.4,1.1); p.vx = rand(-.3,.3); p.size = rand(.03,.08); }
   G.parts.push(p);
 }
 function resetParts(){
@@ -792,6 +921,36 @@ function drawPart(p){
       ctx.fillStyle = `rgba(255,255,255,${0.7*fade})`;
       ctx.beginPath(); ctx.arc(pp.x + dir*r*0.6, pp.y - r*0.05, Math.max(1, r*0.04), 0, 6.28); ctx.fill();
       break; }
+    case 'leaf': {
+      const r = Math.max(1.5, p.size*pp.k);
+      ctx.save(); ctx.translate(pp.x, pp.y); ctx.rotate(p.ph);
+      ctx.fillStyle = `rgba(${p.col||'90,160,60'},${0.9*fade})`;
+      ctx.beginPath(); ctx.ellipse(0, 0, r, r*0.45, 0, 0, 6.28); ctx.fill();
+      ctx.restore(); break; }
+    case 'firefly': {
+      const tw = 0.5 + 0.5*Math.sin(p.ph*2);
+      ctx.save(); ctx.globalCompositeOperation='lighter';
+      const r = Math.max(2, p.size*pp.k*3);
+      const g = ctx.createRadialGradient(pp.x,pp.y,0,pp.x,pp.y,r);
+      g.addColorStop(0,`rgba(220,255,120,${fade*tw})`); g.addColorStop(1,'rgba(220,255,120,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(pp.x,pp.y,r,0,6.28); ctx.fill();
+      ctx.restore(); break; }
+    case 'snow':
+      ctx.fillStyle = `rgba(255,255,255,${0.9*fade})`;
+      ctx.beginPath(); ctx.arc(pp.x + Math.sin(p.ph)*2, pp.y, Math.max(1, p.size*pp.k), 0, 6.28); ctx.fill(); break;
+    case 'bird': {
+      const r = Math.max(2, p.size*pp.k), fl = Math.sin(p.ph*8);
+      ctx.strokeStyle = `rgba(${p.col||'30,30,30'},${fade})`; ctx.lineWidth = Math.max(1.5, r*0.25); ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(pp.x - r, pp.y - r*0.5*fl); ctx.quadraticCurveTo(pp.x - r*0.4, pp.y - r*0.3, pp.x, pp.y);
+      ctx.quadraticCurveTo(pp.x + r*0.4, pp.y - r*0.3, pp.x + r, pp.y - r*0.5*fl); ctx.stroke(); break; }
+    case 'dustcloud': {
+      const r = p.size*pp.k, a = Math.min(1, p.life/2)*0.55*fade;
+      ctx.fillStyle = `rgba(190,140,80,${a})`;
+      ctx.beginPath(); ctx.ellipse(pp.x, pp.y, r, r*0.5, 0, 0, 6.28); ctx.fill(); break; }
+    case 'icicle': {
+      const r = Math.max(2, p.size*pp.k);
+      ctx.fillStyle = `rgba(230,248,255,${0.95*fade})`;
+      ctx.beginPath(); ctx.moveTo(pp.x - r*0.3, pp.y - r); ctx.lineTo(pp.x + r*0.3, pp.y - r); ctx.lineTo(pp.x, pp.y + r); ctx.fill(); break; }
     case 'sparkle': {
       const tw = Math.max(0, Math.sin(p.ph*1.3));
       const r = Math.max(1, p.size*pp.k)*(1+tw*2);
@@ -946,6 +1105,8 @@ const AU = {
   gust(){ this.noise(1.5, .45, 900); this.noise(1.2, .3, 1600, .2); },
   thunder(){ this.noise(.15, .7, 2500); this.noise(2.0, .9, 110, .2); },
   flame(){ this.noise(.8, .5, 650); },
+  birds(){ for(let i=0;i<10;i++) this.tone(1800 + Math.random()*1600, .07, 'sine', .05, i*0.06 + Math.random()*0.03, 1200 + Math.random()*800); },
+  stampede(){ this.noise(2.2, .8, 90); this.noise(1.6, .4, 300, .2); },
   portal(){ this.noise(.35, .35, 250); this.tone(70, .3, 'sine', .15); },
   stage(){ this.tone(392,.15,'triangle',.12); this.tone(523,.15,'triangle',.12,.15); this.tone(784,.4,'triangle',.12,.3); }
 };
@@ -963,22 +1124,21 @@ function buildDots(){
 function updateHud(){
   $('qnum').textContent = Math.min(G.qi+1, TOTAL);
   [...$('dots').children].forEach((e,i)=>{ e.className = i < G.correct ? 'on' : (i===G.qi && G.mode==='run' ? 'now' : ''); });
-  const st = STAGES[G.stage]; $('stageName').textContent = `${st.s}　${st.n}　｜　${courseOf(G.course).name}`;
+  const st = G.stageDef; $('stageName').textContent = `${st.s}　${st.n}　｜　${courseOf(G.course).name}`;
 }
-function showBanner(i){
-  const st = STAGES[i]; $('bS').textContent = st.s; $('bN').textContent = st.n; $('bD').textContent = st.d;
+function showBanner(st){ $('bS').textContent = st.s; $('bN').textContent = st.n; $('bD').textContent = st.d;
   const b = $('banner'); b.classList.remove('go'); void b.offsetWidth; b.classList.add('go');
 }
 function showJudge(ok){
   const j = $('judge'); j.textContent = ok ? '正解！' : '';
-  j.style.color = 'var(--gold)'; j.style.textShadow = '0 5px 0 #6a3a06, 0 0 30px rgba(255,200,60,.8)';
+  j.style.color = 'var(--gold)'; j.style.textShadow = '0 5px 0 var(--shadow), 0 0 30px var(--glow)';
   j.classList.remove('go'); void j.offsetWidth; j.classList.add('go');
 }
 function ansLabel(a){ return a ? '<span class="oxo o">○</span> 本当' : '<span class="oxo x">×</span> ウソ'; }
 function lvStars(lv){ return '難易度 ' + '★'.repeat(lv) + '☆'.repeat(5-lv); }
 
-function setTheme(i){
-  G.stage = i; G.stageKey = STAGES[i].key; theme = THEMES[G.stageKey];
+function setTheme(def){
+  G.stageDef = def; G.stageKey = def.key; theme = THEMES[G.stageKey];
   resetParts(); updateHud();
   HZ.t = rand(3, 5); HZ.streaks = []; HZ.bolt = null; HZ.crack = null; HZ.tint = 0; HZ.gust = 0;
 }
@@ -990,7 +1150,8 @@ function startGame(){
   G.mode = 'run'; G.fallT = 0; G.clearT = 0;
   cam.s = 0; cam.x = 0; cam.y = 1.5; cam.v = 4; cam.roll = 0; cam.pitch = 0; cam.shake = 0;
   ['title','over','clear','result','qcard','choices'].forEach(id => $(id).hidden = true);
-  $('hud').hidden = false; buildDots(); setTheme(0); showBanner(0); AU.stage();
+  G.route = G.qs.map((q,i) => q.hab ? AREAS[q.hab] : STAGES[Math.floor(i/2)]);
+  $('hud').hidden = false; buildDots(); setTheme(G.route[0]); showBanner(G.route[0]); AU.stage();
 }
 function spawnQuestion(){
   const q = G.qs[G.qi];
@@ -1029,8 +1190,8 @@ function nextQuestion(){
   G.waitNext = false; $('result').hidden = true;
   if(G.correct >= TOTAL){ G.mode = 'clear'; G.clearT = 0; AU.clear(); setTimeout(showClear, 1400); return; }
   G.qi++; G.cruiseT = 0;
-  const ns = Math.floor(G.qi/2);
-  if(ns !== G.stage) G.trans = { t:0, to: ns, switched:false };
+  const nd = G.route[G.qi];
+  if(nd !== G.stageDef) G.trans = { t:0, to: nd, switched:false };
   updateHud();
 }
 function startFall(){
@@ -1041,7 +1202,7 @@ function showOver(){
   G.mode = 'over';
   const f = G.fork, q = f.q;
   $('overTitle').textContent = f.timeUp ? '時間切れ…' : '脱線…';
-  $('overSub').textContent = `${courseOf(G.course).name}　${G.correct}問正解　／　${STAGES[G.stage].n}で脱落`;
+  $('overSub').textContent = `${courseOf(G.course).name}　${G.correct}問正解　／　${G.stageDef.n}で脱落`;
   $('mWho').textContent = q.who; $('mQ').textContent = q.text;
   $('mAns').innerHTML = '正解は ' + ansLabel(q.a) + '　' + (q.a ? '（左のレール）' : '（右のレール）');
   $('mExp').textContent = q.exp;
@@ -1057,13 +1218,26 @@ function showClear(){
     const s = document.createElement('span'); s.innerHTML = '　' + ansLabel(q.a);
     li.append(n, a, s); ul.appendChild(li);
   });
-  $('clearSub').textContent = `${courseOf(G.course).name}　10問連続正解！ 黄金の神殿にたどり着いた`;
+  $('clearSub').textContent = courseOf(G.course).bio ? '10問連続正解！ 生きものマスターだ' : `${courseOf(G.course).name}　10問連続正解！ 黄金の神殿にたどり着いた`;
   $('clear').hidden = false; $('hud').hidden = true;
 }
 function toTitle(){
   ['over','clear','result','qcard','choices','hud'].forEach(id => $(id).hidden = true);
   G.mode = 'title'; G.fork = null; cam.x = 0; cam.y = 1.5; cam.pitch = 0; cam.roll = 0;
-  setTheme(0); $('title').hidden = false; showBest();
+  setTheme(titleStage()); $('title').hidden = false; showBest();
+}
+function titleStage(){ return courseOf(G.course).bio ? AREAS.forest : STAGES[0]; }
+function applyCourseLook(){
+  const bio = !!courseOf(G.course).bio;
+  document.body.classList.toggle('bio', bio);
+  $('kicker').textContent = bio ? '生きものの生態クイズ' : '偉人の伝説クイズ';
+  $('logoMain').textContent = bio ? '生きもの' : '偉人伝説';
+  $('rule1').textContent = bio ? '本当だと思ったら' : '本当のエピソードだと思ったら';
+  $('rule10').textContent = bio
+    ? '10問連続で正解するとクリア。問題ごとに、その生きものが住む場所へトロッコが進む。'
+    : '10問連続で正解すると、黄金の神殿にたどり着いてクリア。進むほど問題はむずかしくなる。';
+  $('route').innerHTML = (bio ? ['深い森','サバンナと砂漠','氷の世界','深い海','洞窟と地中','大空'] : ['洞窟','地底マグマ','深海トンネル','天空レール','黄金の神殿'])
+    .map(n => `<span>${n}</span>`).join('');
 }
 function bestKey(k){ k = k || G.course; return k==='all' ? 'ijin-best' : 'ijin-best-' + k; }
 function showBest(){ renderCourses(); }
@@ -1071,7 +1245,7 @@ function renderCourses(){
   const box = $('courses'); box.innerHTML = '';
   COURSES.forEach((c, i) => {
     const b = document.createElement('button');
-    b.className = 'copt'; b.type = 'button';
+    b.className = 'copt' + (c.bio ? ' bio' : ''); b.type = 'button';
     b.setAttribute('role','radio'); b.setAttribute('aria-checked', c.key===G.course ? 'true' : 'false');
     const best = +(store.get(bestKey(c.key))||0);
     const n = document.createElement('span'); n.className='cn'; n.textContent = c.name;
@@ -1079,7 +1253,7 @@ function renderCourses(){
     const bb = document.createElement('span'); bb.className='cb';
     bb.textContent = `全${coursePool(c.key).length}問` + (best ? `　最高 ${best}/10` : '');
     b.append(n, sb, bb);
-    b.addEventListener('click', () => { G.course = c.key; store.set('ijin-course', c.key); renderCourses(); });
+    b.addEventListener('click', () => { G.course = c.key; store.set('ijin-course', c.key); applyCourseLook(); setTheme(titleStage()); renderCourses(); });
     box.appendChild(b);
   });
   const c = courseOf(G.course), best = +(store.get(bestKey())||0);
@@ -1123,6 +1297,29 @@ function hazardEvent(){
       const pts = []; let x = rand(W*0.1, W*0.9), y = -20;
       while(y < baseHy - 10){ pts.push([x,y]); x += rand(-35,35); y += rand(20,50); }
       HZ.bolt = { pts, life:.35 }; HZ.flash = .85; cam.shake = Math.max(cam.shake, 4); AU.thunder();
+    }
+  } else if(k === 'jungle'){
+    if(Math.random() < .5){ // 鳥の群れが飛び立つ
+      const cols = ['230,60,40','250,200,40','40,150,230','40,40,40'];
+      for(let i=0;i<14;i++) fx({ type:'bird', s:cam.s+rand(12,26), X:cam.x+rand(-6,6), Y:rand(3,6), vx:rand(-3,3), vy:rand(1,2.5), vs:-rand(2,6), size:rand(.3,.5), col:cols[i%4], life:4 });
+      AU.birds();
+    } else { // 葉っぱが一斉に落ちてくる
+      for(let i=0;i<50;i++) fx({ type:'leaf', s:cam.s+rand(4,16), X:cam.x+rand(-4,4), Y:rand(5,8), vy:-rand(1,2.5), vx:rand(-1,1), size:rand(.12,.24), col: Math.random()<.3 ? '200,160,50' : '70,150,50', life:4 });
+      cam.shake = Math.max(cam.shake, 3); AU.gust();
+    }
+  } else if(k === 'savanna'){ // 群れの大移動で砂煙
+    const side = Math.random()<.5 ? -1 : 1;
+    for(let i=0;i<18;i++) fx({ type:'dustcloud', s:cam.s+rand(8,30), X:cam.x+side*rand(5,14), Y:rand(0.3,1.5), vx:-side*rand(1,3), size:rand(1.2,2.6), life:4 });
+    cam.shake = Math.max(cam.shake, 9); HZ.tint = 0.25; HZ.tintC = '200,130,60'; AU.stampede();
+  } else if(k === 'ice'){
+    if(Math.random() < .5){ // つららが落ちてくる
+      for(let i=0;i<8;i++) fx({ type:'icicle', s:ahead+rand(-2,2), X:cam.x+rand(-2.4,2.4), Y:rand(3.8,4.6), vy:0, g:rand(10,16), size:rand(.25,.45), life:1.6 });
+      cam.shake = Math.max(cam.shake, 4); AU.creak();
+    } else { // 吹雪
+      HZ.gust = 1.8; HZ.gustDir = Math.random()<.5 ? -1 : 1;
+      for(let i=0;i<40;i++) HZ.streaks.push({ x:rand(0,W), y:rand(0,H*0.9), len:rand(20,60), v:rand(700,1200), life:1.8 });
+      for(let i=0;i<60;i++) fx({ type:'snow', s:cam.s+rand(2,12), X:cam.x+rand(-5,5), Y:rand(0,5), vx:HZ.gustDir*rand(4,8), vy:-rand(.2,.8), size:rand(.03,.07), life:2 });
+      AU.gust();
     }
   } else if(k === 'gold'){
     if(Math.random() < .55){ // 柱からの火炎トラップ
@@ -1306,7 +1503,7 @@ window.addEventListener('keydown', e => {
   if((e.key==='Enter'||e.key===' ') && G.waitNext) nextQuestion();
 });
 
-drawMuteIcon(); setTheme(0); showBest();
+applyCourseLook(); drawMuteIcon(); setTheme(titleStage()); showBest();
 requestAnimationFrame(loop);
 })();
 </script>
