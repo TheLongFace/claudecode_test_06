@@ -96,6 +96,15 @@ a{color:var(--gold)}
 .route{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;font-size:11px;font-weight:700;color:var(--ink-dim)}
 .route span{padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.07)}
 .best{text-align:center;margin-top:10px;font-size:13px;color:var(--ink-dim)}
+.courses{margin-top:12px}
+.ctitle{font-weight:900;font-size:13px;letter-spacing:.2em;color:var(--gold);margin-bottom:10px}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.copt{text-align:left;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.06);border:2px solid rgba(255,244,220,.16);display:flex;flex-direction:column;gap:2px;min-height:64px}
+.copt .cn{font-weight:900;font-size:15px;line-height:1.3}
+.copt .cs{font-size:11px;color:var(--ink-dim);line-height:1.4}
+.copt .cb{font-size:11px;color:var(--gold);font-weight:700;margin-top:auto;font-variant-numeric:tabular-nums}
+.copt[aria-checked="true"]{background:rgba(255,204,77,.16);border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+
 #over{background:rgba(5,2,0,.82)}
 #clear{background:radial-gradient(ellipse at 50% 30%,rgba(255,220,120,.35),rgba(30,15,0,.9))}
 .big{font-family:var(--display);font-weight:400;text-align:center;margin:0 0 4px;font-size:clamp(44px,14vw,64px);letter-spacing:.04em}
@@ -172,6 +181,10 @@ a{color:var(--gold)}
         <li><span class="k g">10</span><span>10問連続で正解すると、黄金の神殿にたどり着いてクリア。進むほど問題はむずかしくなる。</span></li>
       </ul>
       <div class="route"><span>洞窟</span><span>地底マグマ</span><span>深海トンネル</span><span>天空レール</span><span>黄金の神殿</span></div>
+    </div>
+    <div class="card courses">
+      <div class="ctitle">コースを選ぶ</div>
+      <div class="cgrid" id="courses" role="radiogroup" aria-label="コース"></div>
       <button class="btn" id="btnStart">出発進行！</button>
       <div class="best" id="best"></div>
     </div>
@@ -197,7 +210,7 @@ a{color:var(--gold)}
 <section class="screen" id="clear" hidden>
   <div class="inner">
     <div class="big">CLEAR!</div>
-    <div class="sub">10問連続正解！ 黄金の神殿にたどり着いた</div>
+    <div class="sub" id="clearSub">10問連続正解！ 黄金の神殿にたどり着いた</div>
     <div class="card">
       <ul class="figs" id="figs"></ul>
     </div>
@@ -234,19 +247,31 @@ const store = {
 };
 
 // ================= 問題選択 =================
-const POOL = (window.QUESTIONS||[]).map(r => ({ lv:r[0], who:r[1], a:!!r[2], text:r[3], exp:r[4], wiki:r[5] }));
-function pickQuestions(){
-  const used = new Set(), out = [];
+const POOL = (window.QUESTIONS||[]).map(r => ({ lv:r[0], who:r[1], a:!!r[2], text:r[3], exp:r[4], wiki:r[5], tags:(r[6]||'').split(' ') }));
+const COURSES = (window.COURSES||[{ key:'all', name:'全偉人ミックス', sub:'' }]).map(c => ({ ...c, people: new Set((c.people||'').split(' ').filter(Boolean)) }));
+function courseOf(key){ return COURSES.find(c => c.key===key) || COURSES[0]; }
+function coursePool(key){
+  const c = courseOf(key);
+  return c.key==='all' ? POOL : POOL.filter(q => c.people.has(q.who) || q.tags.includes(c.key));
+}
+function pickQuestions(key){
+  const pool = coursePool(key), used = new Set(), out = [];
   for(let lv=1; lv<=5; lv++){
-    const cand = shuffle(POOL.filter(q => q.lv===lv));
-    let n = 0;
-    // ○と×が偏りすぎないよう、1問目の答えと逆の問題を2問目に優先
+    const cand = shuffle(pool.filter(q => q.lv===lv)), lvOut = [];
+    // 1巡目：まだ出ていない人物から。○と×が偏りすぎないよう、2問目は1問目と逆の答えを優先
     for(const q of cand){
-      if(n>=2) break;
+      if(lvOut.length>=2) break;
       if(used.has(q.who)) continue;
-      if(n===1 && out[out.length-1].a===q.a && Math.random()<.55 && cand.some(c=>c.a!==q.a && !used.has(c.who))) continue;
-      out.push(q); used.add(q.who); n++;
+      if(lvOut.length===1 && lvOut[0].a===q.a && Math.random()<.55 && cand.some(c=>c.a!==q.a && !used.has(c.who))) continue;
+      lvOut.push(q); used.add(q.who);
     }
+    // 2巡目：人物が足りないコースでは、同じ難易度内で重ならなければ再登場を許す
+    for(const q of cand){
+      if(lvOut.length>=2) break;
+      if(lvOut.includes(q) || lvOut.some(o => o.who===q.who)) continue;
+      lvOut.push(q); used.add(q.who);
+    }
+    out.push(...lvOut);
   }
   return out;
 }
@@ -266,11 +291,11 @@ const THEMES = {
 
 // 分岐の先の壁とトンネル入口（中が見えないので、抜けるまで正誤がわからない）
 const PORTAL = {
-  cave:  { wall:[66,46,30],    veil:[4,2,1],       trim:[128,86,46],  warn:'落石注意' },
-  magma: { wall:[60,22,12],    veil:[26,5,2],      trim:[255,110,20], warn:'高温注意' },
-  sea:   { wall:[16,56,80],    veil:[2,12,26],     trim:[130,235,255], warn:'水圧注意' },
-  sky:   { wall:[246,250,255], veil:[150,172,204], trim:[255,255,255], warn:'強風注意', cloud:true },
-  gold:  { wall:[150,108,44],  veil:[22,12,2],     trim:[255,214,90], warn:'罠に注意' },
+  cave:  { wall:[66,46,30],    veil:[4,2,1],       trim:[128,86,46] },
+  magma: { wall:[60,22,12],    veil:[26,5,2],      trim:[255,110,20] },
+  sea:   { wall:[16,56,80],    veil:[2,12,26],     trim:[130,235,255] },
+  sky:   { wall:[246,250,255], veil:[150,172,204], trim:[255,255,255], cloud:true },
+  gold:  { wall:[150,108,44],  veil:[22,12,2],     trim:[255,214,90] },
 };
 // ステージごとの危険演出
 const HZ = { t:4, flash:0, tint:0, tintC:'255,60,0', bolt:null, gust:0, streaks:[], crack:null, dark:0 };
@@ -284,7 +309,8 @@ const G = {
   qs:[], qi:0, correct:0, stage:0,
   fork:null, waitNext:false, cruiseT:0,
   trans:null, fallT:0, clearT:0, time:0,
-  parts:[], lastClack:0, tickAt:-1
+  parts:[], lastClack:0, tickAt:-1,
+  course: store.get('ijin-course') || 'all'
 };
 let theme = THEMES.cave;
 
@@ -528,10 +554,9 @@ function drawTrack(){
 function frameDrawer(s, z){
   const t = theme, fs = frameSpec(s), c = fs.c, hw = fs.hw, key = G.stageKey;
   const idx = Math.round(s/FS);
-  if(key === 'sky'){ if(idx % 6 === 3) drawWarn(s, mainX(s) + 1.4, 1.2, 0.4, z, PORTAL.sky.warn); return; }
+  if(key === 'sky') return;
   if(key === 'sea'){
     const p = P(s, c, 1.5); if(!p) return;
-    if(idx % 6 === 3) drawWarn(s, c + hw - 0.2, 2.6, 0.42, z, PORTAL.sea.warn);
     ctx.strokeStyle = fogc(t.frame, z, 0.85); ctx.lineWidth = Math.max(1, 0.16*p.k);
     ctx.beginPath(); ctx.ellipse(p.x, p.y, (hw+0.6)*p.k, 3.1*p.k, 0, Math.PI*0.98, Math.PI*2.02); ctx.stroke();
     ctx.strokeStyle = fogc([200,250,255], z, 0.25); ctx.lineWidth = Math.max(1, 0.05*p.k);
@@ -562,8 +587,6 @@ function frameDrawer(s, z){
     ctx.strokeStyle = fogc([255,120,30], z*0.5, 0.8); ctx.lineWidth = Math.max(1, 0.04*a.k);
     ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(cc.x, cc.y); ctx.stroke();
   }
-  // 沿線の警告看板
-  if(idx % 6 === 3 && key !== 'sea') drawWarn(s - 0.05, c + hw - 0.1, 2.5, 0.42, z, PORTAL[key].warn);
   // たいまつ／ランプ
   if((key==='cave' || key==='gold') && idx % 2 === 0){
     const side = idx % 4 === 0 ? -1 : 1;
@@ -659,28 +682,6 @@ function drawPortal(f){
     ctx.fillStyle = on ? '#ff5a3c' : '#5a1810';
     ctx.beginPath(); ctx.arc(lamp.x, lamp.y, lr, 0, 6.28); ctx.fill();
   }
-  drawWarn(ps - 0.05, 0, 2.6, 0.75, z, pc.warn);
-}
-
-// 黄色の警告看板
-function drawWarn(s, X, Y, size, z, text){
-  const p = P(s, X, Y); if(!p) return;
-  const r = size*p.k; if(r < 2) return;
-  const ink = fogc([34,22,10], z*0.8);
-  ctx.save(); ctx.translate(p.x, p.y);
-  ctx.fillStyle = fogc([246,198,28], z*0.8);
-  ctx.beginPath(); ctx.moveTo(0,-r); ctx.lineTo(r,0); ctx.lineTo(0,r); ctx.lineTo(-r,0); ctx.closePath(); ctx.fill();
-  ctx.lineWidth = Math.max(1, r*0.1); ctx.strokeStyle = ink; ctx.stroke();
-  ctx.fillStyle = ink; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.font = `900 ${r*1.1|0}px sans-serif`; ctx.fillText('!', 0, r*0.06);
-  if(text && r > 9){
-    const fs = Math.max(8, r*0.42|0);
-    ctx.font = `900 ${fs}px 'Zen Kaku Gothic New', sans-serif`;
-    const w = ctx.measureText(text).width + fs*0.8;
-    ctx.fillStyle = fogc([20,14,8], z*0.8); ctx.fillRect(-w/2, r*1.12, w, fs*1.5);
-    ctx.fillStyle = fogc([246,198,28], z*0.8); ctx.fillText(text, 0, r*1.12 + fs*0.78);
-  }
-  ctx.restore();
 }
 
 // パーティクル
@@ -961,7 +962,7 @@ function buildDots(){
 function updateHud(){
   $('qnum').textContent = Math.min(G.qi+1, TOTAL);
   [...$('dots').children].forEach((e,i)=>{ e.className = i < G.correct ? 'on' : (i===G.qi && G.mode==='run' ? 'now' : ''); });
-  const st = STAGES[G.stage]; $('stageName').textContent = `${st.s}　${st.n}`;
+  const st = STAGES[G.stage]; $('stageName').textContent = `${st.s}　${st.n}　｜　${courseOf(G.course).name}`;
 }
 function showBanner(i){
   const st = STAGES[i]; $('bS').textContent = st.s; $('bN').textContent = st.n; $('bD').textContent = st.d;
@@ -984,7 +985,7 @@ function setTheme(i){
 // ================= ゲーム進行 =================
 function startGame(){
   AU.init();
-  G.qs = pickQuestions(); G.qi = 0; G.correct = 0; G.fork = null; G.waitNext = false; G.cruiseT = 0; G.trans = null;
+  G.qs = pickQuestions(G.course); G.qi = 0; G.correct = 0; G.fork = null; G.waitNext = false; G.cruiseT = 0; G.trans = null;
   G.mode = 'run'; G.fallT = 0; G.clearT = 0;
   cam.s = 0; cam.x = 0; cam.y = 1.5; cam.v = 4; cam.roll = 0; cam.pitch = 0; cam.shake = 0;
   ['title','over','clear','result','qcard','choices'].forEach(id => $(id).hidden = true);
@@ -1020,7 +1021,7 @@ function resolveCorrect(){
   $('qcard').hidden = true;
   $('result').hidden = false; $('btnNext').textContent = G.correct >= TOTAL ? '神殿の奥へ ▶' : 'つぎのレールへ ▶';
   G.waitNext = true; showJudge(true); AU.correct(); updateHud();
-  store.set('ijin-best', Math.max(G.correct, +(store.get('ijin-best')||0)));
+  store.set(bestKey(), Math.max(G.correct, +(store.get(bestKey())||0)));
 }
 function nextQuestion(){
   if(!G.waitNext) return;
@@ -1039,7 +1040,7 @@ function showOver(){
   G.mode = 'over';
   const f = G.fork, q = f.q;
   $('overTitle').textContent = f.timeUp ? '時間切れ…' : '脱線…';
-  $('overSub').textContent = `${G.correct}問正解　／　${STAGES[G.stage].n}で脱落`;
+  $('overSub').textContent = `${courseOf(G.course).name}　${G.correct}問正解　／　${STAGES[G.stage].n}で脱落`;
   $('mWho').textContent = q.who; $('mQ').textContent = q.text;
   $('mAns').innerHTML = '正解は ' + ansLabel(q.a) + '　' + (q.a ? '（左のレール）' : '（右のレール）');
   $('mExp').textContent = q.exp;
@@ -1055,6 +1056,7 @@ function showClear(){
     const s = document.createElement('span'); s.innerHTML = '　' + ansLabel(q.a);
     li.append(n, a, s); ul.appendChild(li);
   });
+  $('clearSub').textContent = `${courseOf(G.course).name}　10問連続正解！ 黄金の神殿にたどり着いた`;
   $('clear').hidden = false; $('hud').hidden = true;
 }
 function toTitle(){
@@ -1062,9 +1064,25 @@ function toTitle(){
   G.mode = 'title'; G.fork = null; cam.x = 0; cam.y = 1.5; cam.pitch = 0; cam.roll = 0;
   setTheme(0); $('title').hidden = false; showBest();
 }
-function showBest(){
-  const b = +(store.get('ijin-best')||0);
-  $('best').textContent = b ? `これまでの最高記録：${b}問正解` : `全${POOL.length}問からランダムに出題`;
+function bestKey(k){ k = k || G.course; return k==='all' ? 'ijin-best' : 'ijin-best-' + k; }
+function showBest(){ renderCourses(); }
+function renderCourses(){
+  const box = $('courses'); box.innerHTML = '';
+  COURSES.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.className = 'copt'; b.type = 'button';
+    b.setAttribute('role','radio'); b.setAttribute('aria-checked', c.key===G.course ? 'true' : 'false');
+    const best = +(store.get(bestKey(c.key))||0);
+    const n = document.createElement('span'); n.className='cn'; n.textContent = c.name;
+    const sb = document.createElement('span'); sb.className='cs'; sb.textContent = c.sub;
+    const bb = document.createElement('span'); bb.className='cb';
+    bb.textContent = `全${coursePool(c.key).length}問` + (best ? `　最高 ${best}/10` : '');
+    b.append(n, sb, bb);
+    b.addEventListener('click', () => { G.course = c.key; store.set('ijin-course', c.key); renderCourses(); });
+    box.appendChild(b);
+  });
+  const c = courseOf(G.course), best = +(store.get(bestKey())||0);
+  $('best').textContent = best ? `${c.name}の最高記録：${best}問正解` : `${c.name}：全${coursePool(c.key).length}問からランダムに出題`;
 }
 
 // ================= 危険イベント =================
