@@ -256,20 +256,21 @@ function coursePool(key){
 }
 function pickQuestions(key){
   const pool = coursePool(key), used = new Set(), out = [];
+  // 10問の答えの並びを先に決める（×が4〜6問になるように。どこが×かはランダム）
+  let want;
+  do { want = Array.from({length:TOTAL}, () => Math.random() < 0.5); }
+  while(want.filter(a => !a).length < 4 || want.filter(a => !a).length > 6);
   for(let lv=1; lv<=5; lv++){
     const cand = shuffle(pool.filter(q => q.lv===lv)), lvOut = [];
-    // 1巡目：まだ出ていない人物から。○と×が偏りすぎないよう、2問目は1問目と逆の答えを優先
-    for(const q of cand){
-      if(lvOut.length>=2) break;
-      if(used.has(q.who)) continue;
-      if(lvOut.length===1 && lvOut[0].a===q.a && Math.random()<.55 && cand.some(c=>c.a!==q.a && !used.has(c.who))) continue;
-      lvOut.push(q); used.add(q.who);
-    }
-    // 2巡目：人物が足りないコースでは、同じ難易度内で重ならなければ再登場を許す
-    for(const q of cand){
-      if(lvOut.length>=2) break;
-      if(lvOut.includes(q) || lvOut.some(o => o.who===q.who)) continue;
-      lvOut.push(q); used.add(q.who);
+    for(let k=0; k<2; k++){
+      const a = want[(lv-1)*2 + k];
+      const ok = q => !lvOut.includes(q) && !lvOut.some(o => o.who===q.who);
+      // 優先順：答えが合う＆未登場の人物 → 未登場の人物 → 答えが合う → なんでも
+      const q = cand.find(q => ok(q) && q.a===a && !used.has(q.who))
+             || cand.find(q => ok(q) && !used.has(q.who))
+             || cand.find(q => ok(q) && q.a===a)
+             || cand.find(ok);
+      if(q){ lvOut.push(q); used.add(q.who); }
     }
     out.push(...lvOut);
   }
